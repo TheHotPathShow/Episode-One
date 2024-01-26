@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 public class SpawnPrefabAuthor : MonoBehaviour
@@ -9,7 +10,7 @@ public class SpawnPrefabAuthor : MonoBehaviour
     {
         public override void Bake(SpawnPrefabAuthor authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.None);
+            var entity = GetEntity(TransformUsageFlags.Renderable);
             if (authoring.prefab == null)
                 return;
             AddComponent(entity, new SpawnPrefabData 
@@ -26,6 +27,7 @@ public struct SpawnPrefabData : IComponentData
 }
 
 
+[UpdateAfter(typeof(TransformSystemGroup))]
 partial struct SpawnPrefabSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)
@@ -33,9 +35,16 @@ partial struct SpawnPrefabSystem : ISystem
         if (!Input.GetKeyDown(KeyCode.Space))
             return;
         
-        foreach (var spawnPrefabData in SystemAPI.Query<SpawnPrefabData>())
+        foreach (var (spawnPrefabData, ltw) in SystemAPI.Query<SpawnPrefabData, LocalToWorld>())
         {
-            state.EntityManager.Instantiate(spawnPrefabData.prefabToSpawn);
+            var spawnedEntity = state.EntityManager.Instantiate(spawnPrefabData.prefabToSpawn);
+            SystemAPI.SetComponent(spawnedEntity, LocalTransform.FromMatrix(ltw.Value));
+        }
+        
+        foreach (var (spawnPrefabData, ltw) in SystemAPI.Query<SpawnPrefabData, LocalToWorld>())
+        {
+            var spawnedEntity = state.EntityManager.Instantiate(spawnPrefabData.prefabToSpawn);
+            SystemAPI.SetComponent(spawnedEntity, LocalTransform.FromMatrix(ltw.Value));
         }
     }
 }
