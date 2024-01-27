@@ -18,7 +18,7 @@ public class LifeTimeAuthor : MonoBehaviour
     }
 }
 
-public struct LifeTimeData : IComponentData
+public struct LifeTimeData : IComponentData, IEnableableComponent
 {
     public float SecondsLeft;
 }
@@ -28,26 +28,16 @@ partial struct LifeTimeSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var deltaTime = SystemAPI.Time.DeltaTime;
-        var lifetimeDataHandle = SystemAPI.GetComponentTypeHandle<LifeTimeData>();
-        foreach (var chunk in SystemAPI.QueryBuilder()
-                     .WithAll<LifeTimeData>().Build().ToArchetypeChunkArray(state.WorldUpdateAllocator))
+        foreach (var (lifeTimeDataRef, isAliveStateRef) in SystemAPI.Query<RefRW<LifeTimeData>, EnabledRefRW<LifeTimeData>>())
         {
-            var lifeTimeData = chunk.GetNativeArray(ref lifetimeDataHandle);
-            var entityArray = chunk.GetNativeArray(state.EntityManager.GetEntityTypeHandle());
-            for (var i = 0; i < chunk.Count; i++)
-            {
-                var lifeTime = lifeTimeData[i];
-                lifeTime.SecondsLeft -= deltaTime;
-                if (lifeTime.SecondsLeft <= 0)
-                {
-                    state.EntityManager.DestroyEntity(entityArray[i]);
-                    lifetimeDataHandle.Update(ref state);
-                    lifeTimeData = chunk.GetNativeArray(ref lifetimeDataHandle);
-                    entityArray = chunk.GetNativeArray(state.EntityManager.GetEntityTypeHandle());
-                }
-                else
-                    lifeTimeData[i] = lifeTime;
-            }
+            if (lifeTimeDataRef.ValueRO.SecondsLeft > 0)
+                lifeTimeDataRef.ValueRW.SecondsLeft -= deltaTime;
+            else
+                isAliveStateRef.ValueRW = false;
         }
+        
+        state.EntityManager.DestroyEntity(SystemAPI.QueryBuilder()
+            .WithDisabled<LifeTimeData>()
+            .Build().ToEntityArray(state.WorldUpdateAllocator));
     }
 }

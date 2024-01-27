@@ -88,6 +88,10 @@ partial struct BeltBakingSystem : ISystem
                 
                 // Add the children to the main belt entity
                 leg.AddRange(beltChildren.AsNativeArray().Reinterpret<LinkedEntityGroupFake>());
+                if (SystemAPI.HasComponent<AdditionalEntityParent>(m_BeltEntities[i]))
+                    SystemAPI.SetComponent(m_BeltEntities[i], new AdditionalEntityParent { Parent = e });
+                else
+                    ecb.AddComponent(m_BeltEntities[i], new AdditionalEntityParent { Parent = e });
                 
                 // Set the guid of the belt
                 SystemAPI.SetComponent(m_BeltEntities[i], new EntityGuid(guidOrigin.OriginatingId, guidOrigin.OriginatingSubId, 42, (uint)(id++)+1));
