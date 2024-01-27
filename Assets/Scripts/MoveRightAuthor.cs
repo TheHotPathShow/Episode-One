@@ -29,7 +29,7 @@ partial struct MoveRightSystem : ISystem
     {
         foreach (var (ltwRef, moveData) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<MoveRightData>>())
         {
-            ltwRef.ValueRW.Position.x += moveData.ValueRO.metersPerSecond * SystemAPI.Time.DeltaTime;
+            ltwRef.ValueRW.Position.x += moveData.ValueRO.metersPerSecond * state.WorldUnmanaged.Time.DeltaTime;
         }
     }
 }

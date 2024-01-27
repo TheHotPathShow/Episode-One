@@ -41,9 +41,10 @@ partial struct SpinSystem : ISystem
         }
         
         
-        foreach (var (ltwRef, spinData) in SystemAPI.Query<RefRW<LocalToWorld>, RefRO<SpinData>>())
+        foreach (var (ltwRef, spinData) in SystemAPI.Query<RefRW<LocalToWorld>, RefRO<SpinData>>().WithAll<Prefab>().WithOptions(EntityQueryOptions.IncludePrefab))
         {
             ltwRef.ValueRW.Value = math.mul(ltwRef.ValueRO.Value, float4x4.RotateY(spinData.ValueRO.radiansPerSecond * SystemAPI.Time.DeltaTime));
+            Debug.Log((ltwRef.ValueRO.Rotation));
         }
     }
 }

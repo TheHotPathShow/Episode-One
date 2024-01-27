@@ -42,6 +42,8 @@ partial struct LifeTimeSystem : ISystem
                 {
                     state.EntityManager.DestroyEntity(entityArray[i]);
                     lifetimeDataHandle.Update(ref state);
+                    lifeTimeData = chunk.GetNativeArray(ref lifetimeDataHandle);
+                    entityArray = chunk.GetNativeArray(state.EntityManager.GetEntityTypeHandle());
                 }
                 else
                     lifeTimeData[i] = lifeTime;

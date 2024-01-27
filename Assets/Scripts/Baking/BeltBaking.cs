@@ -95,17 +95,14 @@ partial struct BeltBakingSystem : ISystem
                 // Set the transform of the belt
                 var localPosition = new float3(i, 0, 0);
                 SystemAPI.SetComponent(m_BeltEntities[i], new LocalToWorld {Value = float4x4.Translate(localPosition) * tr.ValueRO.LocalToWorld});
-                SystemAPI.SetComponent(m_BeltEntities[i], LocalTransform.FromPosition(localPosition + tr.ValueRO.Position));
+                SystemAPI.SetComponent(m_BeltEntities[i], LocalTransform.FromPosition(localPosition + tr.ValueRO.Position).Rotate(tr.ValueRO.Rotation));
                 if (SystemAPI.HasComponent<TransformAuthoring>(m_BeltEntities[i]))
                 {
-                    // get the transform authoring component from e as reference
-                    var mainTransform = SystemAPI.GetComponent<TransformAuthoring>(e);
-                    
                     ref var beltTransformAuthoring = ref SystemAPI.GetComponentRW<TransformAuthoring>(m_BeltEntities[i]).ValueRW;
-                    beltTransformAuthoring.LocalToWorld = float4x4.Translate(localPosition) * mainTransform.LocalToWorld;
-                    beltTransformAuthoring.Position = localPosition + mainTransform.Position;
+                    beltTransformAuthoring.LocalToWorld = float4x4.Translate(localPosition) * tr.ValueRO.LocalToWorld;
+                    beltTransformAuthoring.Position = localPosition + tr.ValueRO.Position;
                     beltTransformAuthoring.AuthoringParent = e;
-                    beltTransformAuthoring.LocalPosition = localPosition + mainTransform.Position;
+                    beltTransformAuthoring.LocalPosition = localPosition + tr.ValueRO.Position;
                     beltTransformAuthoring.LocalRotation = tr.ValueRO.Rotation;
                     beltTransformAuthoring.LocalScale = tr.ValueRO.LocalScale;
                     beltTransformAuthoring.RuntimeParent = e;
